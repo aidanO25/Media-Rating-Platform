@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Rating Platform</title>
+    <link rel="stylesheet" href="styling.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <!-- Logo -->
+        <div class="logo-container">
+            <a href="index.html">
+                <img src="images/logo.png" alt="Logo" class="logo-image">
+            </a>
+            <a href="index.html" class="logo-text-link">
+                <span class="logo-text">Opinionate</span>
+            </a>
+        </div>
+
+        <!-- Centered Search Bar -->
+        <div class="search-bar-header">
+            <input type="text" placeholder="Search for media" id="search-input">
+            <div id="search-suggestions" class="search-suggestions"></div>
+        </div>
+
+        <!-- Sign-in / Log-out Link and Profile Icon -->
+        <div class="header-right">
+            <a href="createAccount.html" id="auth-link" class="sign-in-link">Sign In</a>
+            <div class="profile-icon" id="profile-icon">
+                <a href="userProfile.html">
+                    <img id="top-right-profile-picture" src="images/defaultProfile.webp" alt="Profile">
+                </a>
+            </div>
+        </div>
+    </header>
+
+
+
+
+    <!-- Navigation Bar -->
+    <nav>
+        <a onclick="showPage('feed', this)" class="active">Feed</a>
+        <a onclick="showPage('movies', this)">Movies</a>
+        <a onclick="showPage('music', this)">Music</a>
+        <a onclick="showPage('books', this)">Books</a>
+        <a onclick="showPage('games', this)">Video Games</a>
+    </nav>
+
+    <!-- Content Sections -->
+    <div class="content">
+        <!-- Feed Section -->
+        <div id="feed" class="page-section">
+            <div class="reviews-media-list">
+                <!-- Placeholder for future reviews from friends -->
+            </div>
+        </div>
+
+
+
+        <!-- Movies Section -->
+        <div id="movies" class="page-section" style="display: none;">
+            <div id="movies-container" class="media-list">
+                <!-- Movie cards will be dynamically populated -->
+            </div>
+        </div>
+
+        <!-- Music Section -->
+        <div id="music" class="page-section" style="display: none;">
+            <div id="albums-container" class="media-list">
+                <!-- Albums will be dynamically populated -->
+            </div>
+        </div>
+
+        <!-- Books Section -->
+        <div id="books" class="page-section" style="display: none;">
+            <div id="books-container" class="media-list">
+                <!-- Books will be dynamically populated here -->
+            </div>
+        </div>
+
+        <!-- Games Section -->
+        <div id="games" class="page-section" style="display: none;">
+            <div id="games-container" class="media-list">
+                <!-- Video Games will be dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // user session details
+        // Check if user is logged in and update auth link
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch('/check-session');
+                const result = await response.json();
+
+                if (result.loggedIn) {
+                    const authLink = document.getElementById("auth-link");
+                    authLink.textContent = "Log Out";
+                    authLink.href = "#";
+                    authLink.addEventListener("click", handleLogout);
+
+                    // Update UI with the user's name
+                    document.getElementById("profile-icon").title = result.user.username;
+                }
+            } catch (error) {
+                console.error("Error checking session status:", error);
+            }
+        });
+
+        async function loadUserProfile() {
+            console.log("loading user profile");
+            try {
+                const response = await fetch('/user-info');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update top-right profile icon
+                    if (data.profilePicture) {
+                        document.getElementById('top-right-profile-picture').src = `data:image/jpeg;base64,${data.profilePicture}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        }
+        // Load user profile on page load
+        document.addEventListener('DOMContentLoaded', loadUserProfile);
+
+
+
+        // Function to handle logging out
+        async function handleLogout(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = 'index.html'; // Redirect after logging out
+                } else {
+                    console.error("Error logging out:", result.message);
+                }
+            } catch (error) {
+                console.error("Logout request error:", error);
+            }
+        }
+
+
+        // Spotify API Key
+        const CLIENT_ID = 'caff6515bb5c4394a35ad9b11ee09f31';
+        const CLIENT_SECRET = 'aa0145b7bc214e2fae5c02bc3ff2933b';
+        let spotifyAccessToken;
+
+        // Fetch Spotify Access Token
+        async function fetchSpotifyAccessToken() {
+            const response = await fetch('https://accounts.spotify.com/api/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    Authorization: 'Basic ' + btoa(CLIENT_ID + ':' + CLIENT_SECRET),
+                },
+                body: 'grant_type=client_credentials'
+            });
+
+            const data = await response.json();
+            spotifyAccessToken = data.access_token;
+        }
+
+        async function fetchAndDisplayMovies() {
+            try {
+                const response = await fetch('/api/random-movies');
+                const movies = await response.json();
+
+                // Now fetch average rating for each movie
+                const moviesWithRatings = await Promise.all(
+                    movies.map(async (movie) => {
+                        const averageRating = await fetchAverageRating(movie.mediaId);
+                        return { ...movie, averageRating }; // Add the average rating to the movie object
+                    })
+                );
+
+                displayMovies(moviesWithRatings); // Display the movies with average ratings
+            } catch (error) {
+                console.error('Error fetching movies or ratings:', error);
+            }
+        }
+
+        function displayMovies(movies) {
+            const moviesContainer = document.getElementById('movies-container');
+            moviesContainer.innerHTML = ''; // Clear previous content
+
+            movies.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.classList.add('media-item');
+
+                // Get the average rating or set it to 0 if it's missing
+                const averageRating = movie.averageRating || 0;
+                const filledStars = Math.round(averageRating); // Round the average rating to the nearest whole number
+                const emptyStars = 5 - filledStars; // Calculate how many empty stars are needed
+
+                // Create the star icons: If there's no averageRating, display 5 blank stars
+                let starIcons;
+                if (averageRating > 0) {
+                    // If there's a rating, show filled (yellow) and empty (gray) stars
+                    starIcons = `
+                ${'<i class="fa fa-star" style="color: gold;"></i>'.repeat(filledStars)}  
+                ${'<i class="fa fa-star-o" style="color: gray;"></i>'.repeat(emptyStars)}
+            `;
+                } else {
+                    // If no average rating, display 5 blank stars (default)
+                    starIcons = `
+                <div class="star-rating-default">
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                </div>
+            `;
+                }
+
+                movieCard.innerHTML = `
+            <img src="${movie.poster_url}" alt="${movie.title}">
+            <div class="media-info">
+                <p><strong>${movie.title}</strong> - ${movie.releaseDate}</p>
+                <p>Director: ${movie.director}</p>
+                <p>Studio: ${movie.studio}</p>
+            </div>
+            <div class="star-rating">
+                ${starIcons}
+            </div>
+        `;
+
+                // Navigate to internal media page with the movie ID
+                movieCard.addEventListener('click', () => {
+                    window.location.href = `mediaMovies.html?id=${movie.mediaId}`;
+                });
+
+                moviesContainer.appendChild(movieCard);
+            });
+        }
+
+        async function fetchAndDisplayGames() {
+            try {
+                const response = await fetch('/api/random-games');
+                const games = await response.json();
+
+                // Now fetch average rating for each game
+                const gamesWithRatings = await Promise.all(
+                    games.map(async (game) => {
+                        const averageRating = await fetchAverageRating(game.mediaId);
+                        return { ...game, averageRating }; // Add the average rating to the game object
+                    })
+                );
+
+                displayGames(gamesWithRatings); // Display the games with average ratings
+            } catch (error) {
+                console.error('Error fetching games or ratings:', error);
+            }
+        }
+
+        function displayGames(games) {
+            const gamesContainer = document.getElementById('games-container');
+            gamesContainer.innerHTML = ''; // Clear previous content
+
+            games.forEach(game => {
+                const gameCard = document.createElement('div');
+                gameCard.classList.add('media-item');
+
+                // Get the average rating or set it to 0 if it's missing
+                const averageRating = game.averageRating || 0;
+                const filledStars = Math.round(averageRating); // Round the average rating to the nearest whole number
+                const emptyStars = 5 - filledStars; // Calculate how many empty stars are needed
+
+                // Create the star icons: If there's no averageRating, display 5 blank stars
+                let starIcons;
+                if (averageRating > 0) {
+                    // If there's a rating, show filled (yellow) and empty (gray) stars
+                    starIcons = `
+                ${'<i class="fa fa-star" style="color: gold;"></i>'.repeat(filledStars)}  
+                ${'<i class="fa fa-star-o" style="color: gray;"></i>'.repeat(emptyStars)}
+            `;
+                } else {
+                    // If no average rating, display 5 blank stars (default)
+                    starIcons = `
+                <div class="star-rating-default">
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                </div>
+            `;
+                }
+
+                gameCard.innerHTML = `
+            <img src="${game.poster_url}" alt="${game.title}">
+            <div class="media-info">
+                <p><strong>${game.title}</strong> - ${game.releaseDate}</p>
+                <p>Developer: ${game.developer}</p>
+                <p>Publisher: ${game.publisher}</p>
+            </div>
+            <div class="star-rating">
+                ${starIcons}
+            </div>
+        `;
+
+                // Navigate to internal media page with the game ID
+                gameCard.addEventListener('click', () => {
+                    window.location.href = `mediaVG.html?id=${game.mediaId}`;
+                });
+
+                gamesContainer.appendChild(gameCard);
+            });
+        }
+
+        // Display Books from the database
+        async function fetchAndDisplayBooks() {
+            try {
+                const response = await fetch('/api/random-books');
+                const books = await response.json();
+
+                // Now fetch average rating for each book
+                const booksWithRatings = await Promise.all(
+                    books.map(async (book) => {
+                        const averageRating = await fetchAverageRating(book.mediaId);
+                        return { ...book, averageRating }; // Add the average rating to the book object
+                    })
+                );
+
+                displayBooks(booksWithRatings); // Display the books with average ratings
+            } catch (error) {
+                console.error('Error fetching books or ratings:', error);
+            }
+        }
+
+        // Function to display books on the page
+        function displayBooks(books) {
+            const booksContainer = document.getElementById('books-container');
+            booksContainer.innerHTML = ''; // Clear previous content
+
+            books.forEach(book => {
+                const bookCard = document.createElement('div');
+                bookCard.classList.add('media-item');
+
+                // Get the average rating or set it to 0 if it's missing
+                const averageRating = book.averageRating || 0;
+                const filledStars = Math.round(averageRating); // Round the average rating to the nearest whole number
+                const emptyStars = 5 - filledStars; // Calculate how many empty stars are needed
+
+                // Create the star icons: If there's no averageRating, display 5 blank stars
+                let starIcons;
+                if (averageRating > 0) {
+                    // If there's a rating, show filled (yellow) and empty (gray) stars
+                    starIcons = `
+                ${'<i class="fa fa-star" style="color: gold;"></i>'.repeat(filledStars)}  
+                ${'<i class="fa fa-star-o" style="color: gray;"></i>'.repeat(emptyStars)}
+            `;
+                } else {
+                    // If no average rating, display 5 blank stars (default)
+                    starIcons = `
+                <div class="star-rating-default">
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                </div>
+            `;
+                }
+
+                bookCard.innerHTML = `
+            <img src="${book.cover_url}" alt="${book.title}">
+            <div class="media-info">
+                <p><strong>${book.title}</strong></p>
+                <p>Author: ${book.author}</p>
+                <p>Date: ${book.year}</p>
+            </div>
+            <div class="star-rating">
+                ${starIcons}
+            </div>
+        `;
+
+                // Navigate to internal media page with the book ID
+                bookCard.addEventListener('click', () => {
+                    window.location.href = `mediaBooks.html?id=${book.mediaId}`;
+                });
+
+                booksContainer.appendChild(bookCard);
+            });
+        }
+
+        async function fetchAndDisplayAlbums() {
+            try {
+                const response = await fetch('/api/random-albums');
+                const albums = await response.json();
+
+                // Now fetch average rating for each album
+                const albumsWithRatings = await Promise.all(
+                    albums.map(async (album) => {
+                        const averageRating = await fetchAverageRating(album.mediaID);
+                        return { ...album, averageRating }; // Add the average rating to the album object
+                    })
+                );
+
+                displayMusic(albumsWithRatings); // Display the albums with ratings
+            } catch (error) {
+                console.error('Error fetching albums or ratings:', error);
+            }
+        }
+
+
+        function displayMusic(albums) {
+            const albumsContainer = document.getElementById('albums-container');
+            albumsContainer.innerHTML = ''; // Clear previous content
+
+            albums.forEach(album => {
+                const albumCard = document.createElement('div');
+                albumCard.classList.add('media-item');
+
+                // Get the average rating or set it to 0 if it's missing
+                const averageRating = album.averageRating || 0;
+                const filledStars = Math.round(averageRating); // Round the average rating to the nearest whole number
+                const emptyStars = 5 - filledStars; // Calculate how many empty stars are needed
+
+                // Create the star icons: If there's no averageRating, display 5 blank stars
+                let starIcons;
+                if (averageRating > 0) {
+                    // If there's a rating, show filled (yellow) and empty (gray) stars
+                    starIcons = `
+                ${'<i class="fa fa-star" style="color: gold;"></i>'.repeat(filledStars)}  
+                ${'<i class="fa fa-star-o" style="color: gray;"></i>'.repeat(emptyStars)}
+            `;
+                } else {
+                    // If no average rating, display 5 blank stars (default)
+                    starIcons = `
+                <div class="star-rating-default">
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                </div>
+            `;
+                }
+
+                albumCard.innerHTML = `
+            <img src="${album.cover_url}" alt="${album.title}">
+            <div class="media-info">
+                <p><strong>${album.title}</strong> by ${album.artist}</p>
+            </div>
+            <div class="star-rating">
+                ${starIcons}
+            </div>
+        `;
+
+                // Event listener for clicking on an album card
+                albumCard.addEventListener('click', () => {
+                    window.location.href = `mediaMusic.html?id=${album.mediaID}`; // Use mediaID from the database
+                });
+
+                albumsContainer.appendChild(albumCard);
+            });
+        }
+
+        //GiantBomb
+        const apiKey = '8dfa1038447a4c092e489b3775d27ae4821a1e90';
+        const url = `http://localhost:3000/api/games`;
+ 
+        // Page Switching Logic
+        function showPage(pageId, clickedLink) {
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            document.getElementById(pageId).style.display = 'block';
+            document.querySelectorAll('nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            clickedLink.classList.add('active');
+
+            if (pageId === 'movies') fetchAndDisplayMovies();
+            if (pageId === 'music') fetchAndDisplayAlbums();
+            if (pageId === 'books') fetchAndDisplayBooks(); // Fetch books when books tab is selected
+            if (pageId === 'games') fetchAndDisplayGames()
+            if (pageId === 'feed') loadFeed();
+        }
+
+
+
+
+
+
+        // Show 'Feed' by default
+        document.addEventListener('DOMContentLoaded', () => {
+            showPage('feed', document.querySelector('nav a.active'));
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            const suggestionsContainer = document.getElementById('search-suggestions');
+
+            let searchTimeout;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length > 0) {
+                    searchTimeout = setTimeout(() => {
+                        fetchSearchSuggestions(query);
+                    }, 300); // Delay to reduce the number of requests
+                } else {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            function fetchSearchSuggestions(query) {
+                fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySearchSuggestions(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching search suggestions:', error);
+                    });
+            }
+
+            function displaySearchSuggestions(suggestions) {
+                suggestionsContainer.innerHTML = '';
+
+                if (suggestions.length > 0) {
+                    suggestions.forEach(item => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.classList.add('suggestion-item');
+
+                        suggestionItem.innerHTML = `
+                    <img src="${item.poster_url || 'https://via.placeholder.com/50'}" alt="${item.title}">
+                    <div>
+                        <p><strong>${item.title}</strong></p>
+                        <p>${item.mediaType}</p>
+                    </div>
+                `;
+
+                        suggestionItem.addEventListener('click', () => {
+                            let url = '';
+                            if (item.mediaType === 'Movie') {
+                                url = `mediaMovies.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Album') {
+                                url = `mediaMusic.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Book') {
+                                url = `mediaBooks.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Video Game') {
+                                url = `mediaVG.html?id=${item.mediaId}`;
+                            }
+                            window.location.href = url;
+                        });
+
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+
+                    suggestionsContainer.style.display = 'block';
+                } else {
+                    suggestionsContainer.style.display = 'none';
+                }
+            }
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!suggestionsContainer.contains(event.target) && event.target !== searchInput) {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+        });
+
+
+
+        // Refresh Spotify Token every 55 minutes
+        setInterval(fetchSpotifyAccessToken, 55 * 60 * 1000);
+
+
+        async function loadFeed() {
+            try {
+                const response = await fetch('/getReviews');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Pass the reviews to the displayReviews function
+                    displayReviews(data.reviews);
+                }
+            } catch (error) {
+                console.error('Error loading feed:', error);
+            }
+        }
+
+        function displayReviews(reviews) {
+            const mediaList = document.querySelector('.reviews-media-list');
+            mediaList.innerHTML = ''; // Clear existing content
+
+            if (reviews.length > 0) 
+            {
+                reviews.forEach(review => 
+                {
+                    const reviewItem = document.createElement('div');
+                    reviewItem.classList.add('reviews-media-item');
+
+                    reviewItem.innerHTML = `
+                        <div class="reviews-media-item">
+                            <img class="reviews-media-item-img" src="${review.cover_url || 'https://via.placeholder.com/80'}" alt="${review.title}">
+                            <div class="reviews-media-info">
+                                <p><strong>${review.username}'s Review of ${review.title}:</strong></p>
+                                <p>"${review.ratingTxt}"</p>
+                                <p> Rating:
+                                <span style="font-size: 24px; color: gold;">
+                                ${'&#9733;'.repeat(review.ratingStar)}  
+                                ${'&#9734;'.repeat(5 - review.ratingStar)}  
+                                </span>
+                                </p>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add event listener for click event to navigate to the specific media page
+                    reviewItem.addEventListener('click', () => {
+                        let url = '';
+                        if (review.mediatype === 'Movie') {
+                            url = `mediaMovies.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Album') {
+                            url = `mediaMusic.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Book') {
+                            url = `mediaBooks.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Video Game') {
+                            url = `mediaVG.html?id=${review.mediaID}`;
+                        }
+                        window.location.href = url;
+                    });
+
+                    mediaList.appendChild(reviewItem);
+                });
+
+                // Show the reviews container
+                mediaList.style.display = 'block';
+            } else {
+                // Hide the container if there are no reviews
+                mediaList.style.display = 'none';
+            }
+        }
+
+        // Function to fetch average rating for a piece of media.
+        async function fetchAverageRating(mediaID) {
+            try {
+                const response = await fetch(`/getAverageRating/${mediaID}`);
+                const { averageRating } = await response.json(); 
+                return averageRating || 0; // Default to 0 if no rating is found
+            } catch (error) {
+                console.error('Error fetching average rating:', error);
+                return 0; // Return 0 in case of an error
+            }
+        }
+
+        function setStarRating(averageRating) {
+            const stars = document.querySelectorAll('.star');
+            const ratingValue = document.getElementById('rating-value');
+
+            // Round the average rating to the nearest whole number
+            const roundedRating = Math.round(averageRating);
+
+            // Highlight the stars based on the rounded rating
+            for (let i = 0; i < roundedRating; i++) {
+                stars[i].classList.add('filled');
+            }
+
+            // Update the displayed rating value
+            ratingValue.textContent = `${roundedRating} Stars`;
+        }
+
+
+
+    </script>
+
+</body>
+
+</html>

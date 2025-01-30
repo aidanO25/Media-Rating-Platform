@@ -1,0 +1,751 @@
+/* This file is for css of all pages rather than having css on each page. 
+    If a page requires a different style for some small thing, just use inline css
+*/
+
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background:  #25418d 0%;
+    color: #333;
+    overflow-x: hidden;
+}
+/* Header Styling */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px; /* Adjusted padding for better alignment */
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* Logo Container Styling */
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.logo-container a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.logo-image {
+    height: 55px;
+    width: auto;
+}
+
+.logo-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #1e3a8a;
+    white-space: nowrap;
+}
+
+/* Header Styling */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 20px; 
+}
+
+/* Centered Search Bar */
+.search-bar-header {
+    position: relative; /* Set relative positioning for the dropdown alignment */
+    flex: 1;
+    max-width: 600px; /* Adjust based on desired width */
+    margin: 0 auto; /* Center the search bar in its container */
+}
+
+/* Search Bar Input */
+.search-bar-header input[type="text"] {
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 30px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+.search-bar-header input[type="text"]:focus {
+    outline: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Search Suggestions Dropdown */
+.search-suggestions {
+    position: absolute;
+    top: calc(100% + 5px); /* Position it directly below the search bar */
+    left: 0;
+    width: 100%; /* Match the width of the search bar input */
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+    max-height: 300px; /* Adjust max height as needed */
+    overflow-y: auto;
+    z-index: 1000;
+    padding: 12px 0;
+    display: none; /* Hide initially */
+}
+
+/* Individual Suggestion Item Styling */
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 18px; /* Increase padding for readability */
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.suggestion-item:hover {
+    background-color: #f5f5f5; /* Subtle hover effect */
+}
+
+.suggestion-item img {
+    width: 100px; /* Larger image */
+    height: 100px;
+    border-radius: 5px; /* Rounded corners for images */
+    margin-right: 15px;
+}
+
+.suggestion-item p {
+    margin: 0;
+    font-size: 1em; 
+    color: #333;
+}
+
+.suggestion-item p strong {
+    font-weight: 600; /* Emphasize titles */
+    font-size: 1.4em; /* Larger title text */
+}
+
+.suggestion-item p:last-child {
+    font-size: 0.9em; /* Smaller text for media type */
+    color: #666;
+}
+
+
+
+
+/* Header Right Section */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.sign-in-link {
+    font-size: 1em;
+    color: #1e3a8a;
+    text-decoration: none;
+    font-weight: bold;
+    transition: text-decoration 0.3s;
+}
+
+.sign-in-link:hover {
+    text-decoration: underline;
+}
+
+.profile-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+.profile-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+header a {
+    text-decoration: none;
+    color: inherit;
+}
+
+header a:hover {
+    text-decoration: none;
+}
+
+
+nav {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+    background: #fff;
+    border-radius: 30px;
+    padding: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+nav a {
+    margin: 0 20px;
+    padding: 10px 20px;
+    color: #1e3a8a;
+    text-decoration: none;
+    font-size: 1.2em;
+    transition: color 0.3s, background-color 0.3s;
+    border-radius: 15px; /* Apply border-radius by default */
+}
+
+/* Hover effect */
+nav a:hover {
+    color: #fff;
+    background: #433f3f;
+}
+
+/* Active link styling */
+nav a.active {
+    color: #fff;
+    background: #433f3f;
+}
+.content {
+    padding: 30px;
+}
+/* Media List Grid Layout */
+.media-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px; 
+    padding: 20px;
+    justify-items: center;
+}
+
+/* Media Item Card Styling */
+.media-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    width: 100%;
+    max-width: 250px; 
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+}
+
+
+.media-item img {
+    width: 100%;
+    height: auto;
+    max-width: 180px; 
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* Text Styling */
+.media-info p {
+    margin: 5px 0;
+    font-size: 0.9em; /* font size */
+}
+.media-info p strong {
+    font-size: 1.1em;
+    color: #1e3a8a;
+}
+
+/* Hover effect for Media Items */
+.media-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+
+.media-info {
+    flex: 1;
+}
+.media-info p {
+    margin: 5px 0;
+}
+.media-info p strong {
+    font-size: 1.3em;
+    color: #1e3a8a;
+}
+
+/* Profile Container */
+.profile-container {
+    display: flex;
+    align-items: center;
+    padding: 30px;
+    background-color: #fff;
+    margin: 20px auto -5px auto; /* Reduced bottom margin for tighter spacing */
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile Picture Styling */
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.profile-picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Centered container for the settings form */
+.settings-container {
+    width: 400px;
+    margin: 50px auto;
+    padding: 30px 20px; /* Uniform padding on all sides */
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Form group styling for individual fields */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Label styling */
+.form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #1e3a8a;
+}
+
+/* Input field styling for text, password, and email */
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group input[type="email"] {
+    width: calc(100% - 20px); /* Reduce width to ensure padding on the right */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    font-size: 1em;
+    margin: 0 auto;
+}
+
+/* Profile Picture Placeholder */
+.profile-picture-placeholder {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 10px; /* Center the placeholder */
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Styling for the "Choose File" button wrapper */
+.file-input-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+/* File input button styling */
+input[type="file"] {
+    padding: 10px 15px;
+    background-color: #1e3a8a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%; /* Align with other input fields */
+    text-align: center;
+}
+
+input[type="file"]:hover {
+    background-color: #25418d;
+}
+
+/* Submit Changes Button */
+#submit-changes {
+    width: 100%;
+    padding: 10px;
+    background-color: #1e3a8a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 20px;
+    display: none; /* Initially hidden */
+    transition: background-color 0.3s;
+}
+
+#submit-changes:hover {
+    background-color: #25418d;
+}
+
+/* User Description Box Styling */
+.user-description {
+    flex: 1;
+}
+
+.user-description h2 {
+    margin: 0;
+    font-size: 2em;
+    color: #1e3a8a;
+}
+
+.user-description p {
+    margin: 10px 0;
+    font-size: 1.2em;
+    line-height: 1.6;
+}
+
+/* Styling for the form container */
+.form-container {
+    width: 400px;
+    margin: 50px auto;
+    padding: 30px; /* Uniform padding on all sides */
+    background-color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+}
+
+/* Form group for individual input fields */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+/* Input fields styling */
+.form-group input {
+    width: calc(100% - 20px); /* Ensure inputs fit within the container */
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Center and style the switch link */
+.switch-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.switch-link a {
+    font-size: 0.9em; 
+    color: #1e3a8a;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.switch-link a:hover {
+    text-decoration: underline;
+    color: #25418d;
+}
+
+/* Flex container for sign-in link and profile icon */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Adds space between sign-in link and profile icon */
+}
+
+/* Styling for the sign-in link */
+.sign-in-link {
+    font-size: 1em;
+    color: #1e3a8a;
+    text-decoration: none; /* No underline initially */
+    font-weight: bold;
+    transition: text-decoration 0.3s;
+}
+
+.sign-in-link:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
+/* Flex container for logo and text */
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between logo image and text */
+}
+
+/* Styling for the logo image */
+.logo-image {
+    height: 55px;
+    width: auto;
+}
+
+/* Styling for the logo text */
+.logo-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #1e3a8a;
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+/* Container for the Profile Picture Settings */
+.profile-picture-settings {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+}
+
+/* Placeholder Profile Picture */
+.profile-picture-placeholder {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 10px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #ddd;
+}
+
+/* Image Preview inside the Placeholder */
+.profile-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* File Input Styling */
+input[type="file"] {
+    font-size: 0.9em;
+    color: #1e3a8a;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s;
+}
+
+input[type="file"]:hover {
+    text-decoration: underline;
+    color: #25418d;
+}
+
+
+
+/* Button styling */
+button {
+    width: 100%; /* Full-width button */
+    padding: 10px;
+    background-color: #1e3a8a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #25418d;
+}
+/* Star Rating Styling */
+.star-rating {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    color: #ccc; /* Light gray for empty stars */
+}
+
+.star-rating .fa-star {
+    font-size: 2em; /* Increased size for more prominence */
+    margin: 0 2px;
+    transition: color 0.3s;
+}
+
+
+
+
+@keyframes scrollPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+.feed-horizontal {
+    display: flex;
+    flex-wrap: nowrap; /* Prevents items from wrapping to the next line */
+    overflow-x: auto; /* Allows horizontal scrolling if content exceeds container width */
+    gap: 30px; /* Adds space between items */
+    padding: 20px;
+}
+
+/* Container that holds the reviews */
+.reviews-media-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 20px;
+    justify-items: center;
+ }
+ 
+ 
+ /* Individual review card */
+ .reviews-media-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    width: 90%; /* Adjust width to fit the layout */
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 15px;
+    
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+ }
+ .reviews-media-item:hover {
+    transform: translateY(-10px);
+    
+ }
+ /* Poster image styling */
+ .reviews-media-item img {
+    width: 100%;
+    height: 200px;
+    max-width: 150px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    margin-right: 20px;
+ }
+ /* Flex container for the review information */
+ .reviews-media-info {
+    flex: 1;
+ }
+ /* Text formatting for review information */
+ .reviews-media-info p {
+    margin: 5px 0;
+ }
+ .reviews-media-info p strong {
+    font-size: 1.3em;
+    color: #1e3a8a;
+ }
+ /* Rating and review text styling */
+ .reviews-rating-text {
+    font-size: 14px;
+    margin-top: 10px;
+ }
+
+ #bookmarks-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Cards will be at least 250px wide, and the number of columns adjusts based on available width */
+    gap: 20px; /* Space between cards */
+    padding: 20px;
+    max-width: 1200px; /* Limit the max width */
+    margin: 0 auto; /* Center the container */
+}
+
+.bookmark-card {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+    max-width: 300px; /* Restrict max width for cards */
+}
+
+.bookmark-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bookmark-card img {
+    width: 100%;
+    max-width: 150px; /* Restrict image size */
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.delete-button {
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #e60000;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 300px;
+}
+
+.confirm-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background-color: #ccc;
+    color: black;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.confirm-btn:hover {
+    background-color: #e60000;
+}
+
+.cancel-btn:hover {
+    background-color: #999;
+}

@@ -1,0 +1,300 @@
+<!--
+    This is the page a user is taken to when clicking to log-in if they want to create an account or sign in 
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - Media Rating Platform</title>
+    <link rel="stylesheet" href="styling.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <!-- Logo -->
+        <div class="logo-container">
+            <a href="index.html">
+                <img src="images/logo.png" alt="Logo" class="logo-image">
+            </a>
+            <a href="index.html" class="logo-text-link">
+                <span class="logo-text">Opinionate</span>
+            </a>
+        </div>
+
+        <!-- Centered Search Bar -->
+        <div class="search-bar-header">
+            <input type="text" placeholder="Search for media" id="search-input">
+            <div id="search-suggestions" class="search-suggestions"></div>
+        </div>
+
+        <!-- Sign-in / Log-out Link and Profile Icon -->
+        <div class="header-right">
+            <div class="profile-icon" id="profile-icon">
+                <a href="userProfile.html">
+                    <img id="top-right-profile-picture" src="images/defaultProfile.webp" alt="Profile">
+                </a>
+            </div>
+        </div>
+    </header>
+
+<!-- Sign-In Form (Visible by Default) -->
+<div class="content">
+    <div class="form-container" id="sign-in-form">
+        <h2>Sign In</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="sign-in-username">Username:</label>
+                <input type="text" id="sign-in-username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="sign-in-password">Password:</label>
+                <input type="password" id="sign-in-password" name="password" required>
+            </div>
+            <button type="submit">Sign In</button>
+            <p id="login-error" style="color: red; display: none;">Incorrect username or password.</p>
+        </form>
+
+        <!-- Link to Switch to Create Account -->
+        <p class="switch-link">
+            <a href="#" onclick="toggleForms()">Or click here to create an account</a>
+        </p>
+    </div>
+
+
+     <!-- Create Account Section -->
+    <div class="form-container" id="create-account-form" style="display: none;">
+        <h2>Create an Account</h2>
+        <form id="register-form">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
+            </div>
+            <button type="submit">Create Account</button>
+            <p id="register-error" style="color: red; display: none;">An error occurred. Please try again.</p>
+        </form>
+
+        <!-- Link to Switch Back to Sign-In -->
+        <p class="switch-link">
+            <a href="#" onclick="toggleForms()">Already have an account? Sign in here</a>
+        </p>
+    </div>
+
+
+
+
+
+</div>
+
+<script>
+
+    // Check if user is already logged in on page load
+    async function checkSession() 
+    {
+        const response = await fetch('/check-session');
+        const data = await response.json();
+        
+        if (data.loggedIn) {
+            window.location.href = 'profile.html'; // Redirect to the profile page if logged in
+        }
+    }
+
+    // Function to toggle between Sign-In and Create Account forms
+    function toggleForms() 
+    {
+        const signInForm = document.getElementById('sign-in-form');
+        const createAccountForm = document.getElementById('create-account-form');
+
+        if (signInForm.style.display === 'none') {
+            signInForm.style.display = 'block';
+            createAccountForm.style.display = 'none';
+        } else {
+            signInForm.style.display = 'none';
+            createAccountForm.style.display = 'block';
+        }
+    }
+
+    // sign in 
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const username = document.getElementById('sign-in-username').value;
+        const password = document.getElementById('sign-in-password').value;
+        const loginError = document.getElementById('login-error');
+
+        try {
+            const response = await fetch('http://10.11.29.119/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.href = 'userProfile.html';
+            } else {
+                loginError.textContent = result.message;
+                loginError.style.display = 'block';
+            }
+        } catch (error) {
+            loginError.textContent = 'An error occurred during login. Please try again.';
+            loginError.style.display = 'block';
+            console.error('Login request error:', error); // Log client-side errors for debugging
+        }
+    });
+
+     // Handle Account Creation Form Submission
+    document.getElementById('register-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const registerError = document.getElementById('register-error');
+
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            registerError.textContent = 'Passwords do not match. Please try again.';
+            registerError.style.display = 'block';
+            return;
+        }
+
+        try {
+            // Send request to server to create a new account
+            const response = await fetch('http://10.11.29.119/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, email })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Account created successfully; redirect to sign-in or another page
+                alert(result.message);  // shows success message (do we want this)
+                window.location.href = 'userProfile.html';
+            } else {
+                // Show error message from server response
+                registerError.textContent = result.message;
+                registerError.style.display = 'block';
+            }
+        } catch (error) {
+            registerError.textContent = 'An error occurred. Please try again.';
+            registerError.style.display = 'block';
+        }
+    });
+
+    // Form validation function for confirming password entries are the same
+    function validateForm() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (password !== confirmPassword) {
+            alert('Passwords do not match. Please try again.');
+            return false; // Prevent form submission
+        }
+
+        alert('Account created successfully (not connected to a database).');
+        return false; // Prevent default form submission for now
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+            
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            const suggestionsContainer = document.getElementById('search-suggestions');
+
+            let searchTimeout;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length > 0) {
+                    searchTimeout = setTimeout(() => {
+                        fetchSearchSuggestions(query);
+                    }, 300); // Delay to reduce the number of requests
+                } else {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            function fetchSearchSuggestions(query) {
+                fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySearchSuggestions(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching search suggestions:', error);
+                    });
+            }
+
+            function displaySearchSuggestions(suggestions) {
+                suggestionsContainer.innerHTML = '';
+
+                if (suggestions.length > 0) {
+                    suggestions.forEach(item => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.classList.add('suggestion-item');
+
+                        suggestionItem.innerHTML = `
+                    <img src="${item.poster_url || 'https://via.placeholder.com/50'}" alt="${item.title}">
+                    <div>
+                        <p><strong>${item.title}</strong></p>
+                        <p>${item.mediaType}</p>
+                    </div>
+                `;
+
+                        suggestionItem.addEventListener('click', () => {
+                            let url = '';
+                            if (item.mediaType === 'Movie') {
+                                url = `mediaMovies.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Album') {
+                                url = `mediaMusic.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Book') {
+                                url = `mediaBooks.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Video Game') {
+                                url = `mediaVG.html?id=${item.mediaId}`;
+                            }
+                            window.location.href = url;
+                        });
+
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+
+                    suggestionsContainer.style.display = 'block';
+                } else {
+                    suggestionsContainer.style.display = 'none';
+                }
+            }
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!suggestionsContainer.contains(event.target) && event.target !== searchInput) {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+        });
+</script>
+
+</body>
+</html>

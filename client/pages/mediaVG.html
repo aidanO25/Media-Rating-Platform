@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opinionate - Videogame Review</title>
+    <link rel="stylesheet" href="styling.css">
+    <style>
+        /* Styling for the review page */
+        .media-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        .media-picture {
+            margin-right: 20px;
+        }
+
+        .media-picture img {
+            max-width: 100px;
+            border-radius: 8px;
+        }
+
+        .media-details {
+            flex-grow: 1;
+        }
+
+        .media-title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .rating-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .star-rating {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .star {
+            color: lightgray;
+        }
+
+        .star.filled {
+            color: gold;
+        }
+
+        #rating-value {
+            margin-left: 10px;
+        }
+
+        .media-description {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        textarea {
+            width: 95%;
+            height: 100px;
+            /* Set a fixed height */
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            resize: none;
+            /* Disable resizing */
+        }
+
+        .submit-container {
+            display: none;
+            text-align: center;
+        }
+
+        .submit-container button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .submit-container button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Rating Platform</title>
+    <link rel="stylesheet" href="styling.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <!-- Logo -->
+        <div class="logo-container">
+            <a href="index.html">
+                <img src="images/logo.png" alt="Logo" class="logo-image">
+            </a>
+            <a href="index.html" class="logo-text-link">
+                <span class="logo-text">Opinionate</span>
+            </a>
+        </div>
+
+        <!-- Centered Search Bar -->
+        <div class="search-bar-header">
+            <input type="text" placeholder="Search for media" id="search-input">
+            <div id="search-suggestions" class="search-suggestions"></div>
+        </div>
+
+        <!-- Sign-in / Log-out Link and Profile Icon -->
+        <div class="header-right">
+            <a href="createAccount.html" id="auth-link" class="sign-in-link">Sign In</a>
+            <div class="profile-icon" id="profile-icon">
+                <a href="userProfile.html">
+                    <img id="top-right-profile-picture" src="images/defaultProfile.webp" alt="Profile">
+                </a>
+            </div>
+        </div>
+    </header>
+</body>
+    <!-- Media Page Content -->
+    <div class="media-container" id="media-container">
+        <div class="media-picture">
+            <img src="" alt="Media Picture" id="media-image">
+            <div class="bookmark-container" style="text-align: center; margin-top: 20px;">
+                <button id="bookmark-btn" style="background: none; border: none; cursor: pointer;">
+                    <img src="images/bookmarkIcon.webp" alt="Bookmark" id="bookmark-image" style="height: 40px;">
+                </button>
+            </div>
+
+        </div>
+        <div class="media-details">
+            <h2 class="media-title" id="media-title">Media Title</h2>
+            <p id="media-release-date"><strong>Release Date:</strong> Loading...</p>
+            <p id="media-developer"><strong>Developer:</strong> Loading...</p>
+            <p id="media-publisher"><strong>Publisher:</strong> Loading...</p>
+            <p id="media-cast"></p>
+            <div class="media-description">
+                <p id="media-description"><strong>Description:</strong> Loading description...</p>
+            </div>
+            <div class="average-rating" style="font-size: 0.9em;">
+                <h2>Average Rating: <span id="average-rating-value">Loading...</span></h2>
+            </div>
+            <div class="rating-container">
+                <span class="star-rating" id="star-rating">
+                    <span class="star" data-value="1">&#9733;</span>
+                    <span class="star" data-value="2">&#9733;</span>
+                    <span class="star" data-value="3">&#9733;</span>
+                    <span class="star" data-value="4">&#9733;</span>
+                    <span class="star" data-value="5">&#9733;</span>
+                </span>
+                <span id="rating-value">0 Stars</span>
+            </div>
+            <form id="reviewForm">
+                <textarea id="reviewText" rows="4" placeholder="Write your review here..."></textarea>
+                <div class="submit-container" id="submit-container">
+                    <button type="button" id="submit-btn">Submit</button>
+                </div>
+            </form>
+            <div id="success-message" style="display: none; color: green; text-align: center; margin-top: 20px;">
+                Your review has been submitted successfully!
+            </div>
+        </div>
+    </div>
+        <div class="reviewsContainer">
+            <!-- Feed Section -->
+            <div class="reviews-media-list">
+                <!-- Placeholder for future reviews from friends -->
+            </div>
+        </div>
+
+    <script>
+        // Check if user is logged in and update auth link (sign-in in header)
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch('/check-session');
+                const result = await response.json();
+
+                if (result.loggedIn) {
+                    const authLink = document.getElementById("auth-link");
+                    authLink.textContent = "Log Out";
+                    authLink.href = "#";
+                    authLink.addEventListener("click", handleLogout);
+
+                    // Update UI with the user's name
+                    document.getElementById("profile-icon").title = result.user.username;
+                }
+            } catch (error) {
+                console.error("Error checking session status:", error);
+            }
+        });
+
+         // Function to handle logging out
+         async function handleLogout(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = 'index.html'; // Redirect after logging out
+                } else {
+                    console.error("Error logging out:", result.message);
+                }
+            } catch (error) {
+                console.error("Logout request error:", error);
+            }
+        }
+
+        async function loadUserPic() {
+            console.log("loading user profile picture");
+            try {
+                const response = await fetch('/user-info');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update top-right profile icon
+                    if (data.profilePicture) {
+                        document.getElementById('top-right-profile-picture').src = `data:image/jpeg;base64,${data.profilePicture}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        }
+
+        // Load user profile on page load
+        document.addEventListener('DOMContentLoaded', loadUserPic);
+
+
+        // Function to fetch and display game details from the database
+        async function fetchGameDetails(mediaId) {
+            try {
+                // Fetch the game details from the Remote Database based on the mediaId.
+                const gameResponse = await fetch(`/api/games/${mediaId}`);
+
+                // Check
+                if (!gameResponse.ok) {
+                    throw new Error('Failed to fetch game details');
+                }
+
+                const media = await gameResponse.json();
+
+                // Populate media details.
+                document.getElementById('media-title').textContent = media.title;
+                document.getElementById('media-description').textContent = media.description;
+                document.getElementById('media-image').src = media.poster_url;
+                document.getElementById('media-release-date').innerHTML = `<strong>Release Date:</strong> ${media.releaseDate}`;
+                document.getElementById('media-developer').innerHTML = `<strong>Developer:</strong> ${media.developer}`;
+                document.getElementById('media-publisher').innerHTML = `<strong>Publisher:</strong> ${media.publisher}`;
+
+            } catch (error) {
+                console.error('Failed to fetch game details:', error);
+            }
+        }
+
+        // Call fetchGameDetails with the videogame ID from the URL
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mediaId = urlParams.get('id') || '550';
+            fetchGameDetails(mediaId);
+            loadFeed(mediaId);
+            fetchAndDisplayAverageRating(mediaId);
+        });
+
+        // Star rating system
+        const stars = document.querySelectorAll('.star');
+        const ratingValue = document.getElementById('rating-value');
+        const submitButton = document.getElementById('submit-btn');
+        const submitContainer = document.getElementById('submit-container');
+        const reviewText = document.getElementById('reviewText');
+
+        let ratingSelected = false;
+        let selectedRating = 0; // Store the selected rating
+
+        
+
+        function toggleSubmitButton() {
+            if (ratingSelected || description.value.trim()) {
+                submitContainer.style.display = 'block';
+            } else {
+                submitContainer.style.display = 'none';
+            }
+        }
+
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const rating = parseInt(star.getAttribute('data-value'));
+                stars.forEach(s => s.classList.remove('filled'));
+
+                for (let i = 0; i < rating; i++) {
+                    stars[i].classList.add('filled');
+                }
+
+                ratingValue.textContent = `${rating} Stars`;
+                selectedRating = rating;
+                ratingSelected = true;
+                toggleSubmitButton();
+            });
+        });
+        // Toggle submit button visibility based on review text
+        reviewText.addEventListener('input', toggleSubmitButton);
+
+        // Form submission event handler
+        submitButton.addEventListener('click', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mediaID = urlParams.get('id');  // Fetch 'id' as per query parameter in the URL
+            const reviewTextValue = reviewText.value;
+
+            // Log values to verify data being sent
+            console.log("Submitting review:", { mediaID, reviewTextValue, rating: selectedRating });
+
+            try {
+                const response = await fetch('/submitReview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mediaID,
+                        reviewText: reviewTextValue,
+                        rating: selectedRating
+                    })
+                });
+
+                if (response.ok) {
+                    console.log("Review submitted successfully");
+                    // Clear the review text and reset the rating
+                    document.getElementById('reviewText').value = '';  // Clear review text
+                    selectedRating = 0;  // Reset rating
+                    document.getElementById('rating-value').textContent = '0 Stars';
+                    // Hide the submit button again
+                    document.getElementById('submit-container').style.display = 'none';
+                    // Show the success message
+                    const successMessage = document.getElementById('success-message');
+                    successMessage.style.display = 'block';
+
+                    // Hide the success message after 5 seconds
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 5000); // 5 seconds
+                } else {
+                    console.error("Failed to submit review", response.statusText);
+                    // Handle errors if submission fails
+                    alert('Something went wrong. Please try again.');
+                }
+            } catch (error) {
+                console.error("Error submitting review:", error);
+            }
+        });
+
+        const bookmarkButton = document.getElementById('bookmark-btn');
+        bookmarkButton.addEventListener('click', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mediaID = urlParams.get('id');  // Fetch 'id' as per query parameter in the URL
+
+            // Log values to verify data being sent
+            console.log("Submitting bookmark:", { mediaID });
+
+            try {
+                const response = await fetch('/submitBookmark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mediaID
+                    })
+                });
+
+                if (response.ok) {
+                    console.log("Bookmark submitted successfully");
+                    
+                    alert('Bookmark added successfully!');
+                } else {
+                    console.error("Failed to submit bookmark", response.statusText);
+                    // Handle errors if submission fails
+                    alert('Something went wrong. Please try again.');
+                }
+            } catch (error) {
+                console.error("Error submitting bookmark:", error);
+            }
+        });
+
+        async function loadFeed(mediaId) {
+            try {
+                const response = await fetch(`/getReviewsForMedia/${mediaId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayReviews(data.reviews);
+                }
+            } catch (error) {
+                console.error('Error loading feed:', error);
+            }
+        }
+
+        function displayReviews(reviews) {
+            const mediaList = document.querySelector('.reviews-media-list');
+            mediaList.innerHTML = ''; // Clear existing content
+
+            if (reviews.length > 0) {
+                reviews.forEach(review => {
+                    const reviewItem = document.createElement('div');
+                    reviewItem.classList.add('reviews-media-item');
+
+                    reviewItem.innerHTML = `
+    <div class="reviews-media-item">
+        <img class="reviews-media-item-img" src="${review.cover_url || 'https://via.placeholder.com/80'}" alt="${review.title}">
+        <div class="reviews-media-info">
+            <p><strong>${review.username}'s Review on ${review.title}:</strong></p>
+            <p>"${review.ratingTxt}"</p>
+            <p> Rating:
+            <span style="font-size: 24px; color: gold;">
+            ${'&#9733;'.repeat(review.ratingStar)}  
+            ${'&#9734;'.repeat(5 - review.ratingStar)}  
+            </span>
+            </p>
+        </div>
+    </div>
+`;
+
+
+                    // Add event listener for click event to navigate to the specific media page
+                    reviewItem.addEventListener('click', () => {
+                        let url = '';
+                        if (review.mediatype === 'Movie') {
+                            url = `mediaMovies.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Album') {
+                            url = `mediaMusic.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Book') {
+                            url = `mediaBooks.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Video Game') {
+                            url = `mediaVG.html?id=${review.mediaID}`;
+                        }
+                        window.location.href = url;
+                    });
+
+                    mediaList.appendChild(reviewItem);
+                });
+
+                // Show the reviews container
+                mediaList.style.display = 'block';
+            } else {
+                // Hide the container if there are no reviews
+                mediaList.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            const suggestionsContainer = document.getElementById('search-suggestions');
+
+            let searchTimeout;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length > 0) {
+                    searchTimeout = setTimeout(() => {
+                        fetchSearchSuggestions(query);
+                    }, 300); // Delay to reduce the number of requests
+                } else {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            function fetchSearchSuggestions(query) {
+                fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySearchSuggestions(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching search suggestions:', error);
+                    });
+            }
+
+            function displaySearchSuggestions(suggestions) {
+                suggestionsContainer.innerHTML = '';
+
+                if (suggestions.length > 0) {
+                    suggestions.forEach(item => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.classList.add('suggestion-item');
+
+                        suggestionItem.innerHTML = `
+                    <img src="${item.poster_url || 'https://via.placeholder.com/50'}" alt="${item.title}">
+                    <div>
+                        <p><strong>${item.title}</strong></p>
+                        <p>${item.mediaType}</p>
+                    </div>
+                `;
+
+                        suggestionItem.addEventListener('click', () => {
+                            let url = '';
+                            if (item.mediaType === 'Movie') {
+                                url = `mediaMovies.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Album') {
+                                url = `mediaMusic.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Book') {
+                                url = `mediaBooks.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Video Game') {
+                                url = `mediaVG.html?id=${item.mediaId}`;
+                            }
+                            window.location.href = url;
+                        });
+
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+
+                    suggestionsContainer.style.display = 'block';
+                } else {
+                    suggestionsContainer.style.display = 'none';
+                }
+            }
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!suggestionsContainer.contains(event.target) && event.target !== searchInput) {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+        });
+
+        async function fetchAndDisplayAverageRating(mediaId) {
+            try {
+                const response = await fetch(`/getAverageRating/${mediaId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    // Display the average rating
+                    document.getElementById('average-rating-value').textContent =
+                        `${Number(data.averageRating).toFixed(1)} stars (${Number(data.reviewCount)} review${Number(data.reviewCount) !== 1 ? 's' : ''})`;
+
+
+
+                } else {
+                    document.getElementById('average-rating-value').textContent = 'No reviews yet';
+                }
+            } catch (error) {
+                console.error('Error fetching average rating:', error);
+                document.getElementById('average-rating-value').textContent = 'Error fetching rating';
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>

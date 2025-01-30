@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opinionate- User Profile</title>
+    <link rel="stylesheet" href="styling.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <!-- Logo -->
+        <div class="logo-container">
+            <a href="index.html">
+                <img src="images/logo.png" alt="Logo" class="logo-image">
+            </a>
+            <a href="index.html" class="logo-text-link">
+                <span class="logo-text">Opinionate</span>
+            </a>
+        </div>
+
+        <!-- Centered Search Bar -->
+        <div class="search-bar-header">
+            <input type="text" placeholder="Search for media" id="search-input">
+            <div id="search-suggestions" class="search-suggestions"></div>
+        </div>
+
+        <!-- Sign-in / Log-out Link and Profile Icon -->
+        <div class="header-right">
+            <a href="createAccount.html" id="auth-link" class="sign-in-link">Sign In</a>
+            <div class="profile-icon" id="profile-icon">
+                <a href="userProfile.html">
+                    <img id="top-right-profile-picture" src="images/defaultProfile.webp" alt="Profile">
+                </a>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- nav bar to go through each section-->
+    <nav>
+        <a onclick="showSection('library', this)" class="active">Library</a>
+        <a onclick="showSection('bookmarks', this)">Bookmarks</a>
+        <a onclick="showSection('friends', this)">Friends</a>
+        <a onclick="showSection('settings', this)">Settings</a>
+    </nav>
+
+    <!-- displays the user's profile section 
+        This includes things such as profile picture, suername, and bio
+    -->
+    <div class="profile-container">
+        <div class="profile-picture">
+            <img id="profile-picture-display" src="images/defaultProfile.webp" alt="User Profile Picture">
+        </div>
+        <div class="user-description">
+            <h2 id="username-display">Guest</h2>
+            <p id="user-description-text">This is your description. You can edit this in your settings.</p>
+        </div>
+    </div>
+
+    <!-- Section Container -->
+    <div class="content">
+
+        <!-- Library Section -->
+        <div id="library" class="section">
+            <div class="reviews-media-list"></div>
+        </div>
+
+        <!-- Bookmarks Section (Initially Hidden) -->
+        <div id="bookmarks" class="section" style="display: none;">
+            <div id="bookmarks-container"></div>
+            <!-- Bookmarks cards will be dynamically populated -->
+        </div>
+    </div>
+
+    <!-- Friends Section (Initially Hidden) -->
+    <div id="friends" class="section" style="display: none;">
+        <h2>Friends List</h2>
+        <p>Your friends list goes here.</p>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings" class="section" style="display: none;">
+        <div class="form-container" id="sign-in-form">
+            <h2>Update profile settings</h2>
+
+            <form oninput="showSubmitButton()">
+
+                <!-- displas the profile picture in settings along with the ability to add a new picture-->
+                <div class="form-group">
+                    <label for="profile-picture">Profile Picture:</label>
+                    <div class="profile-picture-placeholder">
+                        <img id="settings-profile-picture-display"  alt="User Profile Picture" class="profile-preview">
+                    </div>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="profile-picture" name="profile-picture" accept="image/*" onchange="showSubmitButton()">
+                    </div>
+                </div>
+
+                <!-- Fields to Change User Settings -->
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" data-original="">
+                </div>
+
+                <!-- user password fields-->
+                <div class="form-group">
+                    <label for="current-password">Current Password:</label>
+                    <input type="password" id="current-password" name="current-password" data-original="">
+                </div>
+                
+                <div class="form-group">
+                    <label for="new-password">New Password:</label>
+                    <input type="password" id="new-password" name="new-password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm-new-password">Confirm New Password:</label>
+                    <input type="password" id="confirm-new-password" name="confirm-new-password">
+                </div>
+
+                <!-- Email field -->
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" data-original="">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <input type="text" id="description" name="description" data-original="" oninput="showSubmitButton()">
+                </div>
+
+                <div class="form-group">
+                    <button id="delete-account-btn" class="delete-button">Delete Account</button>
+                </div>
+
+                <p id="update-success-message" style="color: green; display: none;">User profile has been updated.</p>
+                <button id="submit-changes" style="display: none;" onclick="submitChanges(event)">Submit Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+
+        // user session details
+        // Check if user is logged in and update auth link
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch('/check-session');
+                const result = await response.json();
+
+                if (result.loggedIn) {
+                    const authLink = document.getElementById("auth-link");
+                    authLink.textContent = "Log Out";
+                    authLink.href = "#";
+                    authLink.addEventListener("click", handleLogout);
+
+                    // Update UI with the user's name
+                    document.getElementById("profile-icon").title = result.user.username;
+                }
+            } catch (error) {
+                console.error("Error checking session status:", error);
+            }
+        });
+
+        // Function to handle logging out
+
+        async function handleLogout(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = 'index.html'; // Redirect after logging out
+                } else {
+                    console.error("Error logging out:", result.message);
+                }
+            } catch (error) {
+                console.error("Logout request error:", error);
+            }
+        }
+
+
+
+        // Fetch and display the logged-in user's username
+
+        // loads the user profile
+        async function loadUserProfile() {
+            console.log("loading user profile");
+            try {
+                const response = await fetch('/user-info');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update bio section
+                    document.getElementById('username-display').textContent = data.username;
+                    document.getElementById('user-description-text').textContent = data.description || "No description provided.";
+                    document.getElementById('email').textContent = data.email || "No email provided.";
+                    
+                    // Update bio profile picture
+                    if (data.profilePicture) {
+                        document.getElementById('profile-picture-display').src = `data:image/jpeg;base64,${data.profilePicture}`;
+                    }
+
+                    // Update settings section profile picture
+                    if (data.profilePicture) {
+                        document.getElementById('settings-profile-picture-display').src = `data:image/jpeg;base64,${data.profilePicture}`;
+                    }
+                    // Update top-right profile icon
+                    if (data.profilePicture) {
+                        document.getElementById('top-right-profile-picture').src = `data:image/jpeg;base64,${data.profilePicture}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        }
+
+        // Load user profile on page load
+        document.addEventListener('DOMContentLoaded', loadUserProfile);
+
+        // Check if user is logged in and update auth link
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch('/session-status');
+                const result = await response.json();
+
+                if (result.loggedIn) {
+                    // User is logged in: show Log Out button
+                    const authLink = document.getElementById("auth-link");
+                    authLink.textContent = "Log Out";
+                    authLink.href = "#"; // Prevent navigation for log-out action
+                    authLink.addEventListener("click", handleLogout); // Set up log-out click event
+                }
+            } catch (error) {
+                console.error("Error checking session status:", error);
+            }
+        });
+
+        // Function to handle logging out
+        async function handleLogout(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = 'index.html'; // Redirect after logging out
+                } else {
+                    console.error("Error logging out:", result.message);
+                }
+            } catch (error) {
+                console.error("Logout request error:", error);
+            }
+        }
+
+        fetch('/check-session')
+            .then(response => response.json())
+            .then(data => {
+                if (data.loggedIn) {
+                    // Show user info or a "Logout" button
+                } else {
+                    // Redirect to login if needed
+                    window.location.href = '/createAccount.html';
+                }
+            });
+
+
+
+
+
+
+
+
+
+
+        // JavaScript to handle content switching
+        function showSection(sectionId, clickedLink) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Show the selected section
+            document.getElementById(sectionId).style.display = 'block';
+
+            // Remove 'active' class from all nav links
+            document.querySelectorAll('nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Add 'active' class to the clicked link
+            clickedLink.classList.add('active');
+
+            // Call loadLibrary() if the Library section is selected
+            if (sectionId === 'library') {
+                loadLibrary();
+            }
+            if (sectionId === 'bookmarks') {
+                loadBookmarks();
+            }
+        }
+
+        // sign in stuff
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize original values
+            const fields = document.querySelectorAll('#sign-in-form input[data-original]');
+            fields.forEach(field => {
+                field.setAttribute('data-original', field.value);
+            });
+        });
+
+        // this allows us to update the description. it may have to change once we go to add the others in
+        async function submitChanges(event) {
+            event.preventDefault();
+
+            const description = document.getElementById('description').value;
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const profilePictureInput = document.getElementById('profile-picture');
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmNewPassword = document.getElementById('confirm-new-password').value;
+
+            const submitButton = document.getElementById('submit-changes');
+            const successMessage = document.getElementById('update-success-message');
+
+            const originalDescription = submitButton.getAttribute('data-original-description');
+            const originalUsername = submitButton.getAttribute('data-original-username');
+            const originalEmail = submitButton.getAttribute('data-original-email');
+
+            const hasDescriptionChanged = description !== originalDescription;
+            const hasUsernameChanged = username !== originalUsername;
+            const hasEmailChanged = email !== originalEmail;
+            const hasPasswordChanged = currentPassword && newPassword && (newPassword === confirmNewPassword);
+            const hasProfilePictureChanged = profilePictureInput.files.length > 0;
+
+            let updateSuccessful = false;
+
+            // Update description
+            if (hasDescriptionChanged) {
+                try {
+                    const response = await fetch('/update-description', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ description })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        loadUserProfile();
+                        submitButton.setAttribute('data-original-description', description);
+                        updateSuccessful = true;
+                    } else {
+                        alert(result.message || 'An error occurred while updating the description.');
+                    }
+                } catch (error) {
+                    console.error('Update description error:', error);
+                    alert('An error occurred while updating the description. Please try again.');
+                }
+            }
+
+            // Update username
+            if (hasUsernameChanged) {
+                try {
+                    const response = await fetch('/update-username', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        loadUserProfile();
+                        submitButton.setAttribute('data-original-username', username);
+                        updateSuccessful = true;
+                    } else {
+                        alert(result.message || 'An error occurred while updating the username.');
+                    }
+                } catch (error) {
+                    console.error('Update username error:', error);
+                    alert('An error occurred while updating the username. Please try again.');
+                }
+            }
+
+            // Update email
+            if (hasEmailChanged) {
+                try {
+                    const response = await fetch('/update-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        loadUserProfile();
+                        submitButton.setAttribute('data-original-email', email);
+                        updateSuccessful = true;
+                    } else {
+                        alert(result.message || 'An error occurred while updating the email.');
+                    }
+                } catch (error) {
+                    console.error('Update email error:', error);
+                    alert('An error occurred while updating the email. Please try again.');
+                }
+            }
+
+            // Update password
+            if (hasPasswordChanged) {
+                try {
+                    const response = await fetch('/update-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ currentPassword, newPassword })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert(result.message);
+                        updateSuccessful = true;
+                    } else {
+                        alert(result.message || 'An error occurred while updating the password.');
+                    }
+                } catch (error) {
+                    console.error('Update password error:', error);
+                    alert('An error occurred while updating the password. Please try again.');
+                }
+            } else if (currentPassword || newPassword || confirmNewPassword) {
+                alert('Please ensure current password is correct and new passwords match.');
+            }
+
+            // Update profile picture
+            if (hasProfilePictureChanged) {
+                const formData = new FormData();
+                formData.append('profilePicture', profilePictureInput.files[0]);
+
+                try {
+                    const response = await fetch('/update-profile-picture', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        loadUserProfile(); // Reload profile with updated picture
+                        updateSuccessful = true;
+                    } else {
+                        alert(result.message || 'An error occurred while updating the profile picture.');
+                    }
+                } catch (error) {
+                    console.error('Update profile picture error:', error);
+                    alert('An error occurred while updating the profile picture. Please try again.');
+                }
+            }
+
+            // Show success message
+            if (updateSuccessful) {
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000); // Hide message after 3 seconds
+            }
+
+            // Hide submit button if no changes
+            if (!hasDescriptionChanged && !hasUsernameChanged && !hasEmailChanged && !hasPasswordChanged && !hasProfilePictureChanged) {
+                submitButton.style.display = 'none';
+            }
+        }
+
+        // submit button is displayed once changes are made
+        function showSubmitButton() {
+            const descriptionInput = document.getElementById('description');
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+            const profilePictureInput = document.getElementById('profile-picture');
+            const currentPasswordInput = document.getElementById('current-password');
+            const newPasswordInput = document.getElementById('new-password');
+            const confirmNewPasswordInput = document.getElementById('confirm-new-password');
+
+            const submitButton = document.getElementById('submit-changes');
+
+            const originalDescription = submitButton.getAttribute('data-original-description');
+            const originalUsername = submitButton.getAttribute('data-original-username');
+            const originalEmail = submitButton.getAttribute('data-original-email');
+            const originalProfilePicture = submitButton.getAttribute('data-original-profile-picture');
+
+            const hasDescriptionChanged = descriptionInput.value !== originalDescription;
+            const hasUsernameChanged = usernameInput.value !== originalUsername;
+            const hasEmailChanged = emailInput.value !== originalEmail;
+            const hasProfilePictureChanged = profilePictureInput.files.length > 0;
+
+            if (
+                hasDescriptionChanged ||
+                hasUsernameChanged ||
+                hasEmailChanged ||
+                hasProfilePictureChanged ||
+                currentPasswordInput.value ||
+                newPasswordInput.value ||
+                confirmNewPasswordInput.value
+            ) {
+                submitButton.style.display = 'block';
+            } else {
+                submitButton.style.display = 'none';
+            }
+        }
+
+        // Load reviews on page load if the Library is the default section
+        document.addEventListener('DOMContentLoaded', async () => {
+            const response = await fetch('/user-info');
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('description').value = data.description || "";
+                document.getElementById('username').value = data.username || "";
+                document.getElementById('email').value = data.email || "";
+
+                const profilePictureDisplay = document.getElementById('settings-profile-picture-display');
+                if (data.profilePicture) {
+                    profilePictureDisplay.src = `data:image/jpeg;base64,${data.profilePicture}`;
+                } else {
+                    profilePictureDisplay.src = "images/defaultProfile.webp"; // Fallback image
+                }
+
+                document.getElementById('submit-changes').setAttribute('data-original-description', data.description || "");
+                document.getElementById('submit-changes').setAttribute('data-original-username', data.username || "");
+                document.getElementById('submit-changes').setAttribute('data-original-email', data.email || "");
+                document.getElementById('submit-changes').setAttribute('data-original-profile-picture', profilePictureDisplay.src);
+            }
+        });
+
+         // Load reviews on page load if the Library is the default section
+         document.addEventListener('DOMContentLoaded', () => {
+            loadLibrary(); // Fetch reviews for Library section initially
+        });
+
+        async function loadLibrary() {
+            try {
+                const response = await fetch('/getUserReviews');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayReviews(data.reviews);
+                }
+            } catch (error) {
+                console.error('Error loading feed:', error);
+            }
+        }
+
+        function displayReviews(reviews) {
+            const mediaList = document.querySelector('#library .reviews-media-list');
+            mediaList.innerHTML = ''; // Clear existing content
+
+            if (reviews.length > 0) {
+                reviews.forEach(review => {
+                    const reviewItem = document.createElement('div');
+                    reviewItem.classList.add('reviews-media-item');
+
+                    reviewItem.innerHTML = `
+                <div class="reviews-media-item">
+                    <img class="reviews-media-item-img" src="${review.cover_url || 'https://via.placeholder.com/80'}" alt="${review.title}">
+                    <div class="reviews-media-info">
+                        <p><strong> Your Review of ${review.title}:</strong></p>
+                        <p>"${review.ratingTxt}"</p>
+                        <p> Rating:
+                        <span style="font-size: 24px; color: gold;">
+                        ${'&#9733;'.repeat(review.ratingStar)}  
+                        ${'&#9734;'.repeat(5 - review.ratingStar)}  
+                        </span>
+                        </p>
+                    </div>
+                </div>
+            `;
+
+                    reviewItem.addEventListener('click', () => {
+                        let url = '';
+                        if (review.mediatype === 'Movie') {
+                            url = `mediaMovies.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Album') {
+                            url = `mediaMusic.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Book') {
+                            url = `mediaBooks.html?id=${review.mediaID}`;
+                        } else if (review.mediatype === 'Video Game') {
+                            url = `mediaVG.html?id=${review.mediaID}`;
+                        }
+                        window.location.href = url;
+                    });
+
+                    mediaList.appendChild(reviewItem);
+                });
+
+                // Show the reviews container
+                mediaList.style.display = 'block';
+            } else {
+                // Hide the container if there are no reviews
+                mediaList.style.display = 'none';
+            }
+        }
+
+        async function loadBookmarks() {
+            try {
+                const response = await fetch('/getUserBookmarks');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayBookmarks(data.bookmarks);
+                }
+            } catch (error) {
+                console.error('Error loading bookmarks:', error);
+            }
+        }
+
+        function displayBookmarks(bookmarks) {
+            const bookmarkList = document.getElementById('bookmarks-container'); 
+            bookmarkList.innerHTML = ''; // Clear existing content
+
+            if (bookmarks.length > 0) {
+                bookmarks.forEach(bookmark => {
+                    const bookmarkCard = document.createElement('div');
+                    bookmarkCard.classList.add('bookmark-card');
+
+                    
+
+                    bookmarkCard.innerHTML = `
+        <img src="${bookmark.cover_url || 'https://via.placeholder.com/150'}" alt="${bookmark.title}">
+        <div class="media-info">
+          <p><strong>${bookmark.title}</strong></p>
+          <p>${bookmark.mediatype}</p>
+        </div>
+        
+      `;
+
+                    // Add click event listener to navigate to the appropriate media page
+                    bookmarkCard.addEventListener('click', () => {
+                        let url = '';
+                        if (bookmark.mediatype === 'Movie') {
+                            url = `mediaMovies.html?id=${bookmark.mediaID}`;
+                        } else if (bookmark.mediatype === 'Album') {
+                            url = `mediaMusic.html?id=${bookmark.mediaID}`;
+                        } else if (bookmark.mediatype === 'Book') {
+                            url = `mediaBooks.html?id=${bookmark.mediaID}`;
+                        } else if (bookmark.mediatype === 'Video Game') {
+                            url = `mediaVG.html?id=${bookmark.mediaID}`;
+                        }
+                        window.location.href = url;
+                    });
+
+                    bookmarkList.appendChild(bookmarkCard);
+                });
+
+                // Show the bookmarks container
+                bookmarkList.style.display = 'grid';
+            } else {
+                // Hide the container if there are no bookmarks
+                bookmarkList.style.display = 'none';
+            }
+        }
+
+        // lets a user delete their account
+        document.getElementById('delete-account-btn').addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent default form behavior
+
+            // Create the confirmation modal
+            const modal = document.createElement('div');
+            modal.classList.add('modal');
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <p>Are you sure you want to permanently delete your account?</p>
+                    <button id="confirm-delete" class="confirm-btn">Yes</button>
+                    <button id="cancel-delete" class="cancel-btn">No</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Add event listeners for confirmation buttons
+            document.getElementById('confirm-delete').addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/delete-account', {
+                        method: 'DELETE',
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Account successfully deleted.');
+                        window.location.href = 'index.html'; // Redirect to home page
+                    } else {
+                        alert(result.message || 'An error occurred. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error deleting account:', error);
+                    alert('An error occurred. Please try again.');
+                }
+                document.body.removeChild(modal); // Remove modal
+            });
+
+            document.getElementById('cancel-delete').addEventListener('click', () => {
+                document.body.removeChild(modal); // Remove modal if "No" is clicked
+            });
+        });
+
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            const suggestionsContainer = document.getElementById('search-suggestions');
+
+            let searchTimeout;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length > 0) {
+                    searchTimeout = setTimeout(() => {
+                        fetchSearchSuggestions(query);
+                    }, 300); // Delay to reduce the number of requests
+                } else {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            function fetchSearchSuggestions(query) {
+                fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySearchSuggestions(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching search suggestions:', error);
+                    });
+            }
+
+            function displaySearchSuggestions(suggestions) {
+                suggestionsContainer.innerHTML = '';
+
+                if (suggestions.length > 0) {
+                    suggestions.forEach(item => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.classList.add('suggestion-item');
+
+                        suggestionItem.innerHTML = `
+                    <img src="${item.poster_url || 'https://via.placeholder.com/50'}" alt="${item.title}">
+                    <div>
+                        <p><strong>${item.title}</strong></p>
+                        <p>${item.mediaType}</p>
+                    </div>
+                `;
+
+                        suggestionItem.addEventListener('click', () => {
+                            let url = '';
+                            if (item.mediaType === 'Movie') {
+                                url = `mediaMovies.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Album') {
+                                url = `mediaMusic.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Book') {
+                                url = `mediaBooks.html?id=${item.mediaId}`;
+                            } else if (item.mediaType === 'Video Game') {
+                                url = `mediaVG.html?id=${item.mediaId}`;
+                            }
+                            window.location.href = url;
+                        });
+
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+
+                    suggestionsContainer.style.display = 'block';
+                } else {
+                    suggestionsContainer.style.display = 'none';
+                }
+            }
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!suggestionsContainer.contains(event.target) && event.target !== searchInput) {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+        });
+
+
+    </script>
+
+</body>
+
+</html>
