@@ -2,7 +2,7 @@
 
 **NOTE!!!**
 
-This is a cloned repository. My capping project team collaborated within a different repository. I cloned it to update it without affecting the original, main branch. While I could have just created a branch in the main repository, I wouldn't be able to include it on my profile pined repositories or even my repository list. the code and documentation above is original work produced by my senior capping group and I.
+This is a cloned repository. My capping project team collaborated within a different repository. I cloned it to update it without affecting the original, main branch. While I could have just created a branch in the main repository, I wouldn't be able to include it on my profile pined repositories or even my repository list. the code and documentation above is original work produced by my senior capping group and I. View the Project Overview pdf to get an idea of what our project entailed. 
 
 -------------------------------------
 Code Installation Documentation:
